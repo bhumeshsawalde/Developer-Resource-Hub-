@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevResource Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom clean scrollbars & transitions */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200 antialiased">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gray-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <!-- Logo -->
+      <a href="#" onclick="filterCategory('All'); return false;" class="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white tracking-tight shrink-0">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
+          <i class="fa-solid fa-code text-sm"></i>
+        </div>
+        <span>DevResource <span class="text-blue-600">Hub</span></span>
+      </a>
+
+      <!-- Quick Actions / Theme Toggle -->
+      <div class="flex items-center gap-2">
+        <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle theme" class="w-9 h-9 rounded-lg border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition">
+          <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+        </button>
+
+        <button onclick="openModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium text-xs md:text-sm shadow-sm transition">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Add Resource</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Category Bar (horizontal swipe for mobile) -->
+    <nav class="border-t border-gray-100 dark:border-slate-800/80 bg-gray-50/70 dark:bg-slate-900/60 overflow-x-auto hide-scrollbar px-4 py-2 flex items-center gap-2">
+      <button onclick="filterCategory('All')" data-nav-category="All" class="nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-blue-600 text-white shadow-sm transition">
+        All Resources
+      </button>
+      <button onclick="filterCategory('Web Dev')" data-nav-category="Web Dev" class="nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+        Web Dev
+      </button>
+      <button onclick="filterCategory('App Dev')" data-nav-category="App Dev" class="nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+        App Dev
+      </button>
+      <button onclick="filterCategory('AI/ML')" data-nav-category="AI/ML" class="nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+        AI/ML
+      </button>
+      <button onclick="filterCategory('Tools')" data-nav-category="Tools" class="nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+        Tools
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Hero & Controls -->
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 md:py-8 space-y-6">
+
+    <!-- Hero Title -->
+    <div class="text-center space-y-2">
+      <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+        Find Developer Resources
+      </h1>
+      <p class="text-sm md:text-base text-gray-600 dark:text-slate-400 max-w-md mx-auto">
+        Discover useful tools, websites and tutorials for developers.
+      </p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="relative max-w-xl mx-auto">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 dark:text-slate-500">
+        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+      </div>
+      <input 
+        type="text" 
+        id="searchInput" 
+        oninput="handleSearch()"
+        placeholder="Search resources by name, topic, or keyword..." 
+        class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition"
+      >
+      <button 
+        id="clearSearchBtn" 
+        onclick="clearSearch()" 
+        class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Category Filters & Stats Bar -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+      <!-- Filter buttons list -->
+      <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 w-full sm:w-auto">
+        <button onclick="filterCategory('All')" data-filter="All" class="filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-xs transition">
+          All
+        </button>
+        <button onclick="filterCategory('Web Dev')" data-filter="Web Dev" class="filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          Web Dev
+        </button>
+        <button onclick="filterCategory('App Dev')" data-filter="App Dev" class="filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          App Dev
+        </button>
+        <button onclick="filterCategory('AI/ML')" data-filter="AI/ML" class="filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          AI/ML
+        </button>
+        <button onclick="filterCategory('Tools')" data-filter="Tools" class="filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+          Tools
+        </button>
+        <button onclick="toggleBookmarkFilter()" id="savedFilterBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50 hover:bg-amber-50 dark:hover:bg-slate-800 transition flex items-center gap-1">
+          <i class="fa-regular fa-bookmark"></i>
+          <span>Saved</span>
+        </button>
+      </div>
+
+      <!-- Action & Counter -->
+      <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 shrink-0">
+        <span id="resultsCount">Showing 12 resources</span>
+      </div>
+    </div>
+
+    <!-- All Resources Section -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between border-b border-gray-200 dark:border-slate-800 pb-2">
+        <h2 id="sectionHeading" class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span>All Resources</span>
+          <span id="activeFilterBadge" class="text-xs font-normal text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">All</span>
+        </h2>
+        <span class="text-xs text-gray-400">Card Grid</span>
+      </div>
+
+      <!-- Resource Grid -->
+      <div id="resourceGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty state when no matches -->
+      <div id="emptyState" class="hidden text-center py-12 px-4 bg-white dark:bg-slate-800/60 rounded-xl border border-dashed border-gray-300 dark:border-slate-700">
+        <div class="w-12 h-12 rounded-full bg-blue-50 dark:bg-slate-700 text-blue-500 flex items-center justify-center mx-auto mb-3 text-lg">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">No resources found</h3>
+        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">Try adjusting your search terms, removing filters, or add a new resource.</p>
+        <button onclick="resetFilters()" class="mt-4 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition">
+          Reset Filters
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add Resource Modal (On same page) -->
+  <div id="addModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs hidden transition-opacity">
+    <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-slate-700">
+        <h3 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          Add New Resource
+        </h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 p-1">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <form id="addResourceForm" onsubmit="handleAddResource(event)" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-medium text-gray-700 dark:text-slate-300 mb-1" for="resName">Resource Name *</label>
+          <input type="text" id="resName" required placeholder="e.g. Supabase, Tailwind CSS" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white">
+        </div>
+
+        <div>
+          <label class="block font-medium text-gray-700 dark:text-slate-300 mb-1" for="resCategory">Category *</label>
+          <select id="resCategory" required class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white">
+            <option value="Web Dev">Web Dev</option>
+            <option value="App Dev">App Dev</option>
+            <option value="AI/ML">AI/ML</option>
+            <option value="Tools">Tools</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-medium text-gray-700 dark:text-slate-300 mb-1" for="resUrl">Website URL *</label>
+          <input type="url" id="resUrl" required placeholder="https://example.com" class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white">
+        </div>
+
+        <div>
+          <label class="block font-medium text-gray-700 dark:text-slate-300 mb-1" for="resDesc">Description *</label>
+          <textarea id="resDesc" rows="3" required placeholder="Brief description of what this tool or resource does..." class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 font-medium hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition">
+            Add Resource
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-lg shadow-lg text-xs font-medium flex items-center gap-2 transform translate-y-16 opacity-0 transition-all duration-200 pointer-events-none">
+    <i class="fa-solid fa-circle-check text-emerald-500"></i>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+      <p class="text-xs text-gray-500 dark:text-slate-400 font-medium">
+        DevResource Hub — Discover. Learn. Build.
+      </p>
+      <p class="text-[11px] text-gray-400 dark:text-slate-500 mt-1">
+        All-in-one curated developer index with instant search & offline persistence.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // Default initial seed data requested by user
+    const DEFAULT_RESOURCES = [
+      {
+        id: 'res-github',
+        name: 'GitHub',
+        category: 'Tools',
+        description: 'Complete developer platform to build, scale, and deliver secure software with code hosting and Git version control.',
+        url: 'https://github.com',
+        votes: 184,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-brands fa-github'
+      },
+      {
+        id: 'res-mdn',
+        name: 'MDN Web Docs',
+        category: 'Web Dev',
+        description: 'The premier documentation resource for web developers providing in-depth HTML, CSS, JavaScript guides and APIs.',
+        url: 'https://developer.mozilla.org',
+        votes: 215,
+        voted: false,
+        bookmarked: true,
+        icon: 'fa-solid fa-book-bookmark'
+      },
+      {
+        id: 'res-freecodecamp',
+        name: 'freeCodeCamp',
+        category: 'Web Dev',
+        description: 'Free interactive curriculum and certifications to learn web development, full-stack, data analysis, and algorithms.',
+        url: 'https://www.freecodecamp.org',
+        votes: 142,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-fire'
+      },
+      {
+        id: 'res-react',
+        name: 'React',
+        category: 'Web Dev',
+        description: 'The library for web and native user interfaces. Build modular, reusable UI components using declarative JavaScript.',
+        url: 'https://react.dev',
+        votes: 198,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-brands fa-react'
+      },
+      {
+        id: 'res-flutter',
+        name: 'Flutter',
+        category: 'App Dev',
+        description: 'Google’s open-source multi-platform framework for building natively compiled mobile, web, and desktop apps from a single codebase.',
+        url: 'https://flutter.dev',
+        votes: 120,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-mobile-screen'
+      },
+      {
+        id: 'res-google-colab',
+        name: 'Google Colab',
+        category: 'AI/ML',
+        description: 'Hosted Jupyter notebook service that provides free access to computing resources including GPUs and TPUs for machine learning.',
+        url: 'https://colab.research.google.com',
+        votes: 167,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-brain'
+      },
+      {
+        id: 'res-stackoverflow',
+        name: 'Stack Overflow',
+        category: 'Tools',
+        description: 'The world’s largest, most trusted developer Q&A community for learning, sharing programming knowledge, and solving errors.',
+        url: 'https://stackoverflow.com',
+        votes: 153,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-brands fa-stack-overflow'
+      },
+      {
+        id: 'res-w3schools',
+        name: 'W3Schools',
+        category: 'Web Dev',
+        description: 'Beginner-friendly online web development tutorials, interactive try-it code editors, and quick syntax reference sheets.',
+        url: 'https://www.w3schools.com',
+        votes: 95,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-graduation-cap'
+      },
+      {
+        id: 'res-npm',
+        name: 'npm',
+        category: 'Tools',
+        description: 'The essential package manager and open registry for JavaScript and Node.js dependencies, CLI tools, and libraries.',
+        url: 'https://www.npmjs.com',
+        votes: 110,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-brands fa-npm'
+      },
+      {
+        id: 'res-vercel',
+        name: 'Vercel',
+        category: 'Web Dev',
+        description: 'Frontend cloud platform offering zero-configuration deployments, edge compute, serverless functions, and Next.js hosting.',
+        url: 'https://vercel.com',
+        votes: 175,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-triangle-exclamation'
+      },
+      {
+        id: 'res-firebase',
+        name: 'Firebase',
+        category: 'App Dev',
+        description: 'Google’s comprehensive app development platform featuring Firestore DB, authentication, push notifications, and hosting.',
+        url: 'https://firebase.google.com',
+        votes: 134,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-solid fa-fire-flame-curved'
+      },
+      {
+        id: 'res-figma',
+        name: 'Figma',
+        category: 'Tools',
+        description: 'Collaborative cloud interface design and prototyping tool with powerful Dev Mode for inspecting CSS, tokens, and assets.',
+        url: 'https://www.figma.com',
+        votes: 189,
+        voted: false,
+        bookmarked: false,
+        icon: 'fa-brands fa-figma'
+      }
+    ];
+
+    // State
+    let resources = [];
+    let activeCategory = 'All';
+    let searchQuery = '';
+    let filterOnlyBookmarked = false;
+
+    // LocalStorage helper keys
+    const STORAGE_KEY = 'devresource_hub_data_v1';
+    const THEME_KEY = 'devresource_hub_theme';
+
+    // Initialize
+    function init() {
+      // 1. Theme setup
+      const savedTheme = localStorage.getItem(THEME_KEY);
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        updateThemeIcon(true);
+      } else {
+        document.documentElement.classList.remove('dark');
+        updateThemeIcon(false);
+      }
+
+      // 2. Load Resources from LocalStorage
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        try {
+          resources = JSON.parse(savedData);
+        } catch (e) {
+          console.error("Failed to parse storage, using default", e);
+          resources = [...DEFAULT_RESOURCES];
+        }
+      } else {
+        resources = [...DEFAULT_RESOURCES];
+        persistResources();
+      }
+
+      render();
+    }
+
+    function persistResources() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(resources));
+    }
+
+    // Theme toggler
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
+      showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    }
+
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('themeIcon');
+      if (isDark) {
+        icon.className = 'fa-solid fa-sun text-amber-400 text-sm';
+      } else {
+        icon.className = 'fa-solid fa-moon text-sm';
+      }
+    }
+
+    // Category filtering
+    function filterCategory(cat) {
+      activeCategory = cat;
+      filterOnlyBookmarked = false; // Reset bookmark filter when picking category
+      updateFilterButtons();
+      render();
+    }
+
+    function toggleBookmarkFilter() {
+      filterOnlyBookmarked = !filterOnlyBookmarked;
+      const btn = document.getElementById('savedFilterBtn');
+      if (filterOnlyBookmarked) {
+        btn.classList.add('bg-amber-500', 'text-white');
+        btn.classList.remove('bg-white', 'text-amber-600', 'dark:bg-slate-800');
+      } else {
+        btn.classList.remove('bg-amber-500', 'text-white');
+        btn.classList.add('bg-white', 'text-amber-600', 'dark:bg-slate-800');
+      }
+      render();
+    }
+
+    function resetFilters() {
+      activeCategory = 'All';
+      searchQuery = '';
+      filterOnlyBookmarked = false;
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      const savedBtn = document.getElementById('savedFilterBtn');
+      savedBtn.classList.remove('bg-amber-500', 'text-white');
+      savedBtn.classList.add('bg-white', 'text-amber-600', 'dark:bg-slate-800');
+      updateFilterButtons();
+      render();
+    }
+
+    function updateFilterButtons() {
+      // Update top nav
+      document.querySelectorAll('[data-nav-category]').forEach(btn => {
+        const cat = btn.getAttribute('data-nav-category');
+        if (cat === activeCategory && !filterOnlyBookmarked) {
+          btn.className = "nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-blue-600 text-white shadow-sm transition";
+        } else {
+          btn.className = "nav-btn px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition";
+        }
+      });
+
+      // Update pills
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        const cat = btn.getAttribute('data-filter');
+        if (cat === activeCategory && !filterOnlyBookmarked) {
+          btn.className = "filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow-xs transition";
+        } else {
+          btn.className = "filter-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 transition";
+        }
+      });
+
+      // Badge update
+      const badge = document.getElementById('activeFilterBadge');
+      badge.textContent = filterOnlyBookmarked ? 'Saved Bookmarks' : activeCategory;
+    }
+
+    // Instant Search
+    function handleSearch() {
+      const val = document.getElementById('searchInput').value;
+      searchQuery = val.trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (searchQuery.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      render();
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      searchQuery = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      render();
+    }
+
+    // Upvoting
+    function toggleUpvote(id) {
+      const item = resources.find(r => r.id === id);
+      if (!item) return;
+
+      if (item.voted) {
+        item.votes -= 1;
+        item.voted = false;
+        showToast(`Removed upvote for ${item.name}`);
+      } else {
+        item.votes += 1;
+        item.voted = true;
+        showToast(`Upvoted ${item.name}!`);
+      }
+      persistResources();
+      render();
+    }
+
+    // Bookmarking
+    function toggleBookmark(id) {
+      const item = resources.find(r => r.id === id);
+      if (!item) return;
+
+      item.bookmarked = !item.bookmarked;
+      persistResources();
+      showToast(item.bookmarked ? `Bookmarked ${item.name}` : `Removed ${item.name} from bookmarks`);
+      render();
+    }
+
+    // Category styling badge color map
+    function getCategoryBadgeColor(cat) {
+      switch(cat) {
+        case 'Web Dev':
+          return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+        case 'App Dev':
+          return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800';
+        case 'AI/ML':
+          return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
+        case 'Tools':
+          return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800';
+        default:
+          return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600';
+      }
+    }
+
+    // Render Cards Grid
+    function render() {
+      const grid = document.getElementById('resourceGrid');
+      const emptyState = document.getElementById('emptyState');
+      const resultsCount = document.getElementById('resultsCount');
+
+      // Filter logic
+      const filtered = resources.filter(res => {
+        // Category check
+        const matchCategory = (activeCategory === 'All' || res.category === activeCategory);
+        // Bookmark check
+        const matchBookmark = !filterOnlyBookmarked || res.bookmarked;
+        // Search query check
+        const matchSearch = searchQuery === '' || 
+          res.name.toLowerCase().includes(searchQuery) ||
+          res.description.toLowerCase().includes(searchQuery) ||
+          res.category.toLowerCase().includes(searchQuery);
+
+        return matchCategory && matchBookmark && matchSearch;
+      });
+
+      resultsCount.textContent = `Showing ${filtered.length} of ${resources.length} resources`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(res => {
+        const badgeClass = getCategoryBadgeColor(res.category);
+        const upvoteActiveClass = res.voted 
+          ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700 font-bold' 
+          : 'bg-gray-50 dark:bg-slate-800/80 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700';
+
+        const bookmarkIconClass = res.bookmarked 
+          ? 'fa-solid fa-bookmark text-amber-500' 
+          : 'fa-regular fa-bookmark text-gray-400 hover:text-amber-500 dark:text-slate-500 dark:hover:text-amber-400';
+
+        const iconMark = res.icon || 'fa-solid fa-arrow-up-right-from-square';
+
+        return `
+          <div class="group bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700/80 p-4 flex flex-col justify-between hover:border-blue-400 dark:hover:border-blue-500/50 hover:shadow-xs transition duration-150">
+            <!-- Top Card Header -->
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 text-sm">
+                    <i class="${iconMark}"></i>
+                  </div>
+                  <h3 class="font-bold text-sm text-gray-900 dark:text-white truncate" title="${res.name}">
+                    ${res.name}
+                  </h3>
+                </div>
+
+                <!-- Bookmark Button -->
+                <button 
+                  onclick="toggleBookmark('${res.id}')" 
+                  aria-label="Bookmark ${res.name}" 
+                  class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700 transition shrink-0"
+                >
+                  <i class="${bookmarkIconClass} text-sm"></i>
+                </button>
+              </div>
+
+              <!-- Category Tag -->
+              <div class="mb-2">
+                <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium border ${badgeClass}">
+                  ${res.category}
+                </span>
+              </div>
+
+              <!-- Description -->
+              <p class="text-xs text-gray-600 dark:text-slate-400 leading-relaxed line-clamp-3 mb-4">
+                ${res.description}
+              </p>
+            </div>
+
+            <!-- Bottom Card Footer (Buttons) -->
+            <div class="pt-3 border-t border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-2">
+              <!-- Visit Resource Link/Button -->
+              <a 
+                href="${res.url}" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium text-xs shadow-xs transition"
+              >
+                <span>Visit Resource</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+
+              <!-- Upvote Button + Counter -->
+              <button 
+                onclick="toggleUpvote('${res.id}')"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs transition active:scale-95 ${upvoteActiveClass}"
+                title="Upvote this resource"
+              >
+                <i class="fa-solid fa-arrow-up text-[10px]"></i>
+                <span class="tabular-nums font-semibold">${res.votes}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Modal Control
+    function openModal() {
+      document.getElementById('addModal').classList.remove('hidden');
+      document.getElementById('resName').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('addModal').classList.add('hidden');
+      document.getElementById('addResourceForm').reset();
+    }
+
+    // Add Resource Handler
+    function handleAddResource(e) {
+      e.preventDefault();
+      const name = document.getElementById('resName').value.trim();
+      const category = document.getElementById('resCategory').value;
+      let url = document.getElementById('resUrl').value.trim();
+      const description = document.getElementById('resDesc').value.trim();
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+
+      // Generate icon based on category
+      let icon = 'fa-solid fa-cube';
+      if (category === 'Web Dev') icon = 'fa-solid fa-code';
+      if (category === 'App Dev') icon = 'fa-solid fa-mobile';
+      if (category === 'AI/ML') icon = 'fa-solid fa-robot';
+      if (category === 'Tools') icon = 'fa-solid fa-wrench';
+
+      const newResource = {
+        id: 'res-' + Date.now(),
+        name,
+        category,
+        description,
+        url,
+        votes: 1,
+        voted: true,
+        bookmarked: false,
+        icon
+      };
+
+      resources.unshift(newResource);
+      persistResources();
+      closeModal();
+      showToast(`Added "${name}" to DevResource Hub!`);
+
+      // Switch view if needed so the user sees their new resource
+      if (activeCategory !== 'All' && activeCategory !== category) {
+        activeCategory = category;
+        updateFilterButtons();
+      }
+      render();
+    }
+
+    // Simple Toast message
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-16', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+
+    // Close modal on Escape or Outside Click
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+    document.getElementById('addModal').addEventListener('click', (e) => {
+      if (e.target.id === 'addModal') closeModal();
+    });
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', init);
+    init();
+  </script>
+</body>
+</html>
